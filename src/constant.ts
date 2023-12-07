@@ -1,0 +1,8 @@
+const SSLCOMMERZ_STORE_ID = 'foysa656c03bc600f4'
+const SSLCOMMERZ_STORE_SECRCT_KEY = 'foysa656c03bc600f4@ssl'
+const IS_LIVE = false
+export {
+    IS_LIVE, SSLCOMMERZ_STORE_ID,
+    SSLCOMMERZ_STORE_SECRCT_KEY
+};
+
