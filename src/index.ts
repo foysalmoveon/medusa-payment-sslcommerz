@@ -1,8 +1,9 @@
-export * from "./types"
-export * from "./core/stripe-base"
-export * from "./services/stripe-blik"
-export * from "./services/stripe-bancontact"
-export * from "./services/stripe-giropay"
-export * from "./services/stripe-ideal"
-export * from "./services/stripe-przelewy24"
-export * from "./services/stripe-provider"
+export * from "./core/sslcommerz-base";
+export * from "./services/sslcommerz-amxcard";
+export * from "./services/sslcommerz-internetbank";
+export * from "./services/sslcommerz-mobilebank";
+export * from "./services/sslcommerz-othercard";
+export * from "./services/sslcommerz-visacard";
+export * from "./services/stripe-provider";
+export * from "./types";
+

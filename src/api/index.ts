@@ -1,19 +1,18 @@
+
 //import { authenticate } from "@medusajs/medusa";
 import { ConfigModule } from "@medusajs/types";
 import getConfigFile from "@medusajs/utils/dist/common/get-config-file";
 import bodyParser from "body-parser";
 import cors from "cors";
 import { Router } from "express";
-import { IS_LIVE, SSLCOMMERZ_STORE_ID, SSLCOMMERZ_STORE_SECRCT_KEY } from "../constant";
 import { getSSLCommerzPayments } from "../controllers/get-payments";
 import { generateTransactionId } from "../controllers/helpers";
 
-const SSLCommerzPayment = require('sslcommerz-lts');
 
-export default (rootDirectory) => {
+
+export default (rootDirectory: string) => {
   const app = Router()
   
-  const sslcz = new SSLCommerzPayment(SSLCOMMERZ_STORE_ID, SSLCOMMERZ_STORE_SECRCT_KEY, IS_LIVE)
   const tran_id = generateTransactionId(); 
 
   const { configModule } = getConfigFile<ConfigModule>(

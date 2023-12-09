@@ -3,13 +3,13 @@ import {
   CartService,
   IdempotencyKeyService,
   PostgresError,
-} from "@medusajs/medusa"
-import { AwilixContainer } from "awilix"
-import { MedusaError } from "medusa-core-utils"
-import { EOL } from "os"
-import Stripe from "stripe"
+} from "@medusajs/medusa";
+import { AwilixContainer } from "awilix";
+import { MedusaError } from "medusa-core-utils";
+import { EOL } from "os";
+import Stripe from "stripe";
 
-const PAYMENT_PROVIDER_KEY = "pp_stripe"
+const PAYMENT_PROVIDER_KEY = "ssl_commerce"
 
 export function constructWebhook({
   signature,

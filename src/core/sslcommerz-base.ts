@@ -5,43 +5,43 @@ import {
   PaymentProcessorError,
   PaymentProcessorSessionResponse,
   PaymentSessionStatus,
-} from "@medusajs/medusa"
-import { EOL } from "os"
-import Stripe from "stripe"
+} from "@medusajs/medusa";
+import { MedusaError } from "@medusajs/utils";
+import { EOL } from "os";
+import Stripe from "stripe";
 import {
   ErrorCodes,
   ErrorIntentStatus,
   PaymentIntentOptions,
-  StripeOptions,
-} from "../types"
-import { MedusaError } from "@medusajs/utils"
+  SSLcommerzOptions
+} from "../types";
 
-abstract class StripeBase extends AbstractPaymentProcessor {
+const SSLCommerzPayment = require('sslcommerz-lts');
+
+abstract class SSLcommerzBase extends AbstractPaymentProcessor {
   static identifier = ""
 
-  protected readonly options_: StripeOptions
+  protected readonly options_: SSLcommerzOptions
   protected stripe_: Stripe
+  protected sslcommerce_:any
 
   protected constructor(_, options) {
     super(_, options)
 
     this.options_ = options
-
-    this.init()
+    this.sslcommerce_ = null
   }
 
-  protected init(): void {
-    this.stripe_ =
-      this.stripe_ ||
-      new Stripe(this.options_.api_key, {
-        apiVersion: "2022-11-15",
-      })
+  public sslInit(storeId:string, secrctKey:string, mode:boolean): void{ 
+    const sslcz = new SSLCommerzPayment(storeId, secrctKey, mode)
+    this.sslcommerce_ = sslcz
   }
+
 
   abstract get paymentIntentOptions(): PaymentIntentOptions
 
-  getStripe() {
-    return this.stripe_
+  getSSLcommerz() {
+    return this.sslcommerce_
   }
 
   getPaymentIntentOptions(): PaymentIntentOptions {
@@ -312,13 +312,13 @@ abstract class StripeBase extends AbstractPaymentProcessor {
    *    ensures integrity of the webhook event
    * @return {object} Stripe Webhook event
    */
-  constructWebhookEvent(data, signature) {
-    return this.stripe_.webhooks.constructEvent(
-      data,
-      signature,
-      this.options_.webhook_secret
-    )
-  }
+  // constructWebhookEvent(data, signature) {
+  //   return this.stripe_.webhooks.constructEvent(
+  //     data,
+  //     signature,
+  //     this.options_.webhook_secret
+  //   )
+  // }
 
   protected buildError(
     message: string,
@@ -336,4 +336,4 @@ abstract class StripeBase extends AbstractPaymentProcessor {
   }
 }
 
-export default StripeBase
+export default SSLcommerzBase

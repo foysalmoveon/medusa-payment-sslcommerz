@@ -1,8 +1,10 @@
-import { Region } from "@medusajs/medusa"
+import { Region } from "@medusajs/medusa";
 
-export interface StripeOptions {
-  api_key: string
-  webhook_secret: string
+export interface SSLcommerzOptions {
+  api_key: string;
+  IS_LIVE: false,
+  SSLCOMMERZ_STORE_SECRCT_KEY : 'foysa656c03bc600f4@ssl',
+  SSLCOMMERZ_STORE_ID: 'foysa656c03bc600f4',
   /**
    * Use this flag to capture payment immediately (default is false)
    */
@@ -33,12 +35,13 @@ export const ErrorIntentStatus = {
 }
 
 export const PaymentProviderKeys = {
-  STRIPE: "stripe",
-  BAN_CONTACT: "stripe-bancontact",
-  BLIK: "stripe-blik",
-  GIROPAY: "stripe-giropay",
-  IDEAL: "stripe-ideal",
-  PRZELEWY_24: "stripe-przelewy24",
+  SSLCOMMERZ: "ssl_commerce",
+  INTERNETBANK: "internetbank", 
+  MOBILEBANK : "mobilebank",
+  OTHERCARD: "othercard",
+  VISACARD : "visacard",
+  MASTERCARD: "mastercard",
+  AMEXCARD : "amexcard",
 }
 
 export type WidgetPayment = {
