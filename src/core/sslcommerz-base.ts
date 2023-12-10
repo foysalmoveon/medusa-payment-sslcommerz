@@ -4,17 +4,21 @@ import {
   PaymentProcessorContext,
   PaymentProcessorError,
   PaymentProcessorSessionResponse,
-  PaymentSessionStatus,
+  PaymentSessionStatus
 } from "@medusajs/medusa";
 import { MedusaError } from "@medusajs/utils";
 import { EOL } from "os";
 import Stripe from "stripe";
+import { IS_LIVE, SSLCOMMERZ_STORE_ID, SSLCOMMERZ_STORE_SECRCT_KEY } from "../constant";
+import { generateTransactionId } from "../controllers/helpers";
 import {
   ErrorCodes,
   ErrorIntentStatus,
   PaymentIntentOptions,
   SSLcommerzOptions
 } from "../types";
+
+
 
 const SSLCommerzPayment = require('sslcommerz-lts');
 
@@ -36,7 +40,6 @@ abstract class SSLcommerzBase extends AbstractPaymentProcessor {
     const sslcz = new SSLCommerzPayment(storeId, secrctKey, mode)
     this.sslcommerce_ = sslcz
   }
-
 
   abstract get paymentIntentOptions(): PaymentIntentOptions
 
@@ -89,71 +92,70 @@ abstract class SSLcommerzBase extends AbstractPaymentProcessor {
   async initiatePayment(
     context: PaymentProcessorContext
   ): Promise<PaymentProcessorError | PaymentProcessorSessionResponse> {
-    const intentRequestData = this.getPaymentIntentOptions()
-    const {
-      email,
-      context: cart_context,
-      currency_code,
-      amount,
-      resource_id,
-      customer,
-    } = context
-
-    const description = (cart_context.payment_description ??
-      this.options_?.payment_description) as string
-
-    const intentRequest: Stripe.PaymentIntentCreateParams = {
-      description,
-      amount: Math.round(amount),
-      currency: currency_code,
-      metadata: { resource_id },
-      capture_method: this.options_.capture ? "automatic" : "manual",
-      ...intentRequestData,
-    }
-
-    if (this.options_?.automatic_payment_methods) {
-      intentRequest.automatic_payment_methods = { enabled: true }
-    }
-
-    if (customer?.metadata?.stripe_id) {
-      intentRequest.customer = customer.metadata.stripe_id as string
-    } else {
-      let stripeCustomer
-      try {
-        stripeCustomer = await this.stripe_.customers.create({
-          email,
-        })
-      } catch (e) {
-        return this.buildError(
-          "An error occurred in initiatePayment when creating a Stripe customer",
-          e
-        )
-      }
-
-      intentRequest.customer = stripeCustomer.id
-    }
-
-    let session_data
     try {
-      session_data = (await this.stripe_.paymentIntents.create(
-        intentRequest
-      )) as unknown as Record<string, unknown>
-    } catch (e) {
-      return this.buildError(
-        "An error occurred in InitiatePayment during the creation of the stripe payment intent",
-        e
-      )
-    }
 
-    return {
-      session_data,
-      update_requests: customer?.metadata?.stripe_id
-        ? undefined
-        : {
-            customer_metadata: {
-              stripe_id: intentRequest.customer,
-            },
-          },
+      const {
+        email,
+        context: cart_context,
+        currency_code,
+        amount,
+        resource_id,
+        customer,
+      } = context
+
+      const intentRequestData = this.getPaymentIntentOptions()
+
+      await this.sslInit(SSLCOMMERZ_STORE_ID, SSLCOMMERZ_STORE_SECRCT_KEY, IS_LIVE);
+      const trans_id = generateTransactionId();
+
+      const data = {
+        total_amount: amount,
+        currency: currency_code.toUpperCase(),
+        tran_id: trans_id, // use unique tran_id for each api call
+        success_url: `http://localhost:9000/success/${trans_id}`,
+        fail_url: 'http://localhost:3030/fail',
+        cancel_url: 'http://localhost:3030/cancel',
+        ipn_url: 'http://localhost:3030/ipn',
+        shipping_method: 'Curireir',
+        product_name: "Computer,Speaker",
+        product_category: 'Electronic',
+        product_profile: 'general',
+        cus_name: customer?.first_name,
+        cus_email: customer?.email,
+        cus_add1: 'Dhaka',
+        cus_add2: 'Dhaka',
+        cus_city: 'Dhaka',
+        cus_state: 'Dhaka',
+        cus_postcode: null,
+        cus_country: null,
+        cus_phone: customer?.phone,
+        cus_fax: null,
+        ship_name: 'air',
+        ship_add1: "Mirpur-10",
+        ship_add2: "Mirpur-12",
+        ship_city: "Dhaka",
+        ship_state: null,
+        ship_postcode: 1254,
+        ship_country: "Dhaka",
+      };
+
+      
+      const sslcommer = this.sslcommerce_;
+      const intent = await sslcommer.init(data);
+
+
+      let session_data = intent;
+      console.log(intent, "intent");
+
+      return {
+        session_data,
+        
+      };
+    } catch (error) {
+      console.error(error);
+      return {
+        error: 'Error initiating payment',
+      };
     }
   }
 

@@ -13,7 +13,7 @@ export async function getSSLCommerzPayments(req): Promise<WidgetPayment[]> {
   sslCommerz.sslInit(SSLCOMMERZ_STORE_ID, SSLCOMMERZ_STORE_SECRCT_KEY, IS_LIVE);
 
   const order = await orderService.retrieve(order_id, {
-    relations: ["payments", "swaps", "swaps.payment", "region"],
+    relations: ["payments", "swaps", "swaps.payment", "region" ,"cart" , "customer"],
   })
 
   const paymentIds = order.payments
@@ -33,9 +33,7 @@ export async function getSSLCommerzPayments(req): Promise<WidgetPayment[]> {
     paymentIds.map(async (payment) => {
       console.log(payment, "payment")
       const intent = await sslCommerz
-        .getSSLcommerz().init(payment.id);
-      console.log(intent)
- 
+        .getSSLcommerz()
       const charge = intent.latest_charge as Stripe.Charge
 
       return {
