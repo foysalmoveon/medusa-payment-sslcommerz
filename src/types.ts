@@ -21,7 +21,6 @@ export interface SSLcommerzOptions {
 
 export interface PaymentIntentOptions {
   capture_method?: "automatic" | "manual"
-  setup_future_usage?: "on_session" | "off_session"
   payment_method_types?: string[]
 }
 
@@ -35,7 +34,7 @@ export const ErrorIntentStatus = {
 }
 
 export const PaymentProviderKeys = {
-  SSLCOMMERZ: "ssl_commerce",
+  SSLCOMMERZ: "sslcommerz",
   INTERNETBANK: "internetbank", 
   MOBILEBANK : "mobilebank",
   OTHERCARD: "othercard",

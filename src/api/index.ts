@@ -1,13 +1,13 @@
 
 //import { authenticate } from "@medusajs/medusa";
-import { OrderService, PaymentProcessorContext } from "@medusajs/medusa";
 import { ConfigModule } from "@medusajs/types";
 import getConfigFile from "@medusajs/utils/dist/common/get-config-file";
 import bodyParser from "body-parser";
 import cors from "cors";
 import { Router } from "express";
+import { Request } from "express-serve-static-core";
+import { ParsedQs } from "qs";
 import { generateTransactionId } from "../controllers/helpers";
-import SSLcommerzBase from "../core/sslcommerz-base";
 
 
 
@@ -36,26 +36,31 @@ export default (rootDirectory: string) => {
   )
 
   app.get(`/admin/orders/sslcommerz-payments/:order_id`, async (req, res) => {
-    console.log(req);
-    const { order_id } = req.params
-    const sslCommerz: SSLcommerzBase = req.scope.resolve("stripeProviderService")
-    const orderService: OrderService = req.scope.resolve("orderService")
-
-    const order = await orderService.retrieve(order_id, {
-      relations: ["payments", "swaps", "swaps.payment", "region" ,"cart" , "customer"],
-    })
-
-    const context: PaymentProcessorContext  = {
-      email: order.customer.email,
-      context: order.metadata,
-      currency_code: order.currency_code,
-      amount: 100,
-      resource_id: "1",
-      customer: order.customer,
-      paymentSessionData: order.metadata };
-    const paymentResponse = await sslCommerz.initiatePayment(context)
-    res.json(paymentResponse);
+    const payments = getStripePayments(req)
+    res.json({ payments })
   })
+
+  // app.get(`/admin/orders/sslcommerz-payments/:order_id`, async (req, res) => {
+  //   console.log(req);
+  //   const { order_id } = req.params
+  //   const sslCommerz: SSLcommerzBase = req.scope.resolve("stripeProviderService")
+  //   const orderService: OrderService = req.scope.resolve("orderService")
+
+  //   const order = await orderService.retrieve(order_id, {
+  //     relations: ["payments", "swaps", "swaps.payment", "region" ,"cart" , "customer"],
+  //   })
+
+  //   const context: PaymentProcessorContext  = {
+  //     email: order.customer.email,
+  //     context: order.metadata,
+  //     currency_code: order.currency_code,
+  //     amount: 100,
+  //     resource_id: "1",
+  //     customer: order.customer,
+  //     paymentSessionData: order.metadata };
+  //   const paymentResponse = await sslCommerz.initiatePayment(context)
+  //   res.json(paymentResponse);
+  // })
 
 
 
@@ -74,4 +79,8 @@ export default (rootDirectory: string) => {
 
   
   return app
+}
+
+function getStripePayments(req: Request<{ order_id: string; }, any, any, ParsedQs, Record<string, any>>) {
+  throw new Error("Function not implemented.");
 }

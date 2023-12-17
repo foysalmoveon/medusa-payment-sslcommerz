@@ -1,7 +1,7 @@
-import StripeBase from "../core/sslcommerz-base";
+import SSLcommerzBase from "../core/sslcommerz-base";
 import { PaymentIntentOptions, PaymentProviderKeys } from "../types";
 
-class InternetBankProviderService extends StripeBase {
+class InternetBankProviderService extends SSLcommerzBase {
   static identifier = PaymentProviderKeys.INTERNETBANK
 
   constructor(_: any, options: any) {

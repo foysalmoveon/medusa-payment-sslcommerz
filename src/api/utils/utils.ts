@@ -9,7 +9,7 @@ import { MedusaError } from "medusa-core-utils";
 import { EOL } from "os";
 import Stripe from "stripe";
 
-const PAYMENT_PROVIDER_KEY = "ssl_commerce"
+const PAYMENT_PROVIDER_KEY = "sslcommerz"
 
 export function constructWebhook({
   signature,

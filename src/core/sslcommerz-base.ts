@@ -8,7 +8,6 @@ import {
 } from "@medusajs/medusa";
 import { MedusaError } from "@medusajs/utils";
 import { EOL } from "os";
-import Stripe from "stripe";
 import { IS_LIVE, SSLCOMMERZ_STORE_ID, SSLCOMMERZ_STORE_SECRCT_KEY } from "../constant";
 import { generateTransactionId } from "../controllers/helpers";
 import {
@@ -23,10 +22,9 @@ import {
 const SSLCommerzPayment = require('sslcommerz-lts');
 
 abstract class SSLcommerzBase extends AbstractPaymentProcessor {
-  static identifier = ""
+  static identifier: string = "sslcommerz"
 
   protected readonly options_: SSLcommerzOptions
-  protected stripe_: Stripe
   protected sslcommerce_:any
 
   protected constructor(_, options) {
@@ -38,6 +36,7 @@ abstract class SSLcommerzBase extends AbstractPaymentProcessor {
 
   public sslInit(storeId:string, secrctKey:string, mode:boolean): void{ 
     const sslcz = new SSLCommerzPayment(storeId, secrctKey, mode)
+
     this.sslcommerce_ = sslcz
   }
 
@@ -54,10 +53,6 @@ abstract class SSLcommerzBase extends AbstractPaymentProcessor {
       options.capture_method = this.paymentIntentOptions.capture_method
     }
 
-    if (this?.paymentIntentOptions?.setup_future_usage) {
-      options.setup_future_usage = this.paymentIntentOptions.setup_future_usage
-    }
-
     if (this?.paymentIntentOptions?.payment_method_types) {
       options.payment_method_types =
         this.paymentIntentOptions.payment_method_types
@@ -70,10 +65,10 @@ abstract class SSLcommerzBase extends AbstractPaymentProcessor {
     paymentSessionData: Record<string, unknown>
   ): Promise<PaymentSessionStatus> {
     const id = paymentSessionData.id as string
-    const paymentIntent = await this.stripe_.paymentIntents.retrieve(id)
+    const paymentIntent = await this.sslcommerce_.status(id)
 
     switch (paymentIntent.status) {
-      case "requires_payment_method":
+      case "VALID":
       case "requires_confirmation":
       case "processing":
         return PaymentSessionStatus.PENDING
@@ -207,7 +202,7 @@ abstract class SSLcommerzBase extends AbstractPaymentProcessor {
   > {
     try {
       const id = paymentSessionData.id as string
-      return (await this.sslcommerce_.cancel(
+      return (await this.sslcommerce_.initiateRefund(
         id
       )) as unknown as PaymentProcessorSessionResponse["session_data"]
     } catch (error) {
@@ -227,7 +222,7 @@ abstract class SSLcommerzBase extends AbstractPaymentProcessor {
     console.log(paymentSessionData, "paymentsesstionData")
     const id = paymentSessionData.id as string
     try {
-      const intent = await this.sslcommerce_.paymentIntents.capture(id)
+      const intent = await this.sslcommerce_.validate(id);
       return intent as unknown as PaymentProcessorSessionResponse["session_data"]
     } catch (error) {
       if (error.code === ErrorCodes.PAYMENT_INTENT_UNEXPECTED_STATE) {
@@ -277,7 +272,7 @@ abstract class SSLcommerzBase extends AbstractPaymentProcessor {
   > {
     try {
       const id = paymentSessionData.id as string
-      const intent = await this.stripe_.paymentIntents.retrieve(id)
+      const intent = await this.sslcommerce_.retrieve(id)
       return intent as unknown as PaymentProcessorSessionResponse["session_data"]
     } catch (e) {
       return this.buildError("An error occurred in retrievePayment", e)
@@ -288,9 +283,9 @@ abstract class SSLcommerzBase extends AbstractPaymentProcessor {
     context: PaymentProcessorContext
   ): Promise<PaymentProcessorError | PaymentProcessorSessionResponse | void> {
     const { amount, customer, paymentSessionData } = context
-    const stripeId = customer?.metadata?.stripe_id
+    const sslcommerId = customer?.metadata?.sslcommer_id
 
-    if (stripeId !== paymentSessionData.customer) {
+    if (sslcommerId !== paymentSessionData.customer) {
       const result = await this.initiatePayment(context)
       if (isPaymentProcessorError(result)) {
         return this.buildError(
@@ -307,7 +302,7 @@ abstract class SSLcommerzBase extends AbstractPaymentProcessor {
 
       try {
         const id = paymentSessionData.id as string
-        const sessionData = (await this.stripe_.paymentIntents.update(id, {
+        const sessionData = (await this.sslcommerce_.updatePayment(id, {
           amount: Math.round(amount),
         })) as unknown as PaymentProcessorSessionResponse["session_data"]
 
@@ -329,7 +324,7 @@ abstract class SSLcommerzBase extends AbstractPaymentProcessor {
         )
       }
 
-      return (await this.stripe_.paymentIntents.update(sessionId, {
+      return (await this.sslcommerce_.updatePayment(sessionId, {
         ...data,
       })) as unknown as PaymentProcessorSessionResponse["session_data"]
     } catch (e) {
@@ -337,24 +332,9 @@ abstract class SSLcommerzBase extends AbstractPaymentProcessor {
     }
   }
 
-  /**
-   * Constructs Stripe Webhook event
-   * @param {object} data - the data of the webhook request: req.body
-   * @param {object} signature - the Stripe signature on the event, that
-   *    ensures integrity of the webhook event
-   * @return {object} Stripe Webhook event
-   */
-  // constructWebhookEvent(data, signature) {
-  //   return this.stripe_.webhooks.constructEvent(
-  //     data,
-  //     signature,
-  //     this.options_.webhook_secret
-  //   )
-  // }
-
   protected buildError(
     message: string,
-    e: Stripe.StripeRawError | PaymentProcessorError | Error
+    e: any | PaymentProcessorError | Error
   ): PaymentProcessorError {
     return {
       error: message,

@@ -4,6 +4,6 @@ export * from "./services/sslcommerz-internetbank";
 export * from "./services/sslcommerz-mobilebank";
 export * from "./services/sslcommerz-othercard";
 export * from "./services/sslcommerz-visacard";
-export * from "./services/stripe-provider";
+export * from "./services/sslcommerz-provider";
 export * from "./types";
 

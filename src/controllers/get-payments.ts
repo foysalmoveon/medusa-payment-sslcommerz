@@ -8,22 +8,23 @@ export async function getSSLCommerzPayments(req): Promise<WidgetPayment[]> {
   const { order_id } = req.params
 
   const orderService: OrderService = req.scope.resolve("orderService")
-  const sslCommerz: SSLcommerzBase = req.scope.resolve("stripeProviderService")
+  const sslCommerz: SSLcommerzBase = req.scope.resolve("sslcommerzProviderService")
 
   sslCommerz.sslInit(SSLCOMMERZ_STORE_ID, SSLCOMMERZ_STORE_SECRCT_KEY, IS_LIVE);
 
   const order = await orderService.retrieve(order_id, {
     relations: ["payments", "swaps", "swaps.payment", "region" ,"cart" , "customer"],
   })
+  console.log(order,"order")
 
   const paymentIds = order.payments
-    .filter((p) => p.provider_id === "ssl_commerce")
+    .filter((p) => p.provider_id === "sslcommerz")
     .map((p) => ({ id: p.data.id as string, type: "order" }))
   
 
   if (order.swaps.length) {
     const swapPayments = order.swaps
-      .filter((p) => p.payment.provider_id === "ssl_commerce")
+      .filter((p) => p.payment.provider_id === "sslcommerz")
       .map((p) => ({ id: p.payment.data.id as string, type: "swap" }))
     paymentIds.push(...swapPayments)
   }
@@ -34,6 +35,8 @@ export async function getSSLCommerzPayments(req): Promise<WidgetPayment[]> {
       console.log(payment, "payment")
       const intent = await sslCommerz
         .getSSLcommerz()
+      
+      console.log(intent);
       const charge = intent.latest_charge as Stripe.Charge
 
       return {

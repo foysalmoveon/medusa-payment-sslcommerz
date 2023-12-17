@@ -1,5 +1,4 @@
 import SSLcommerzBase from "../core/sslcommerz-base";
-import StripeBase from "../core/sslcommerz-base";
 import { PaymentIntentOptions, PaymentProviderKeys } from "../types";
 
 class MobileBankingProviderService extends SSLcommerzBase {
