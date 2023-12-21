@@ -1,5 +1,4 @@
 import { OrderService } from "@medusajs/medusa";
-import Stripe from "stripe";
 import { IS_LIVE, SSLCOMMERZ_STORE_ID, SSLCOMMERZ_STORE_SECRCT_KEY } from "../constant";
 import SSLcommerzBase from "../core/sslcommerz-base";
 import { WidgetPayment } from "../types";
@@ -37,7 +36,7 @@ export async function getSSLCommerzPayments(req): Promise<WidgetPayment[]> {
         .getSSLcommerz()
       
       console.log(intent);
-      const charge = intent.latest_charge as Stripe.Charge
+      const charge = intent.latest_charge
 
       return {
         id: intent.id,

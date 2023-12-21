@@ -35,12 +35,6 @@ export const ErrorIntentStatus = {
 
 export const PaymentProviderKeys = {
   SSLCOMMERZ: "sslcommerz",
-  INTERNETBANK: "internetbank", 
-  MOBILEBANK : "mobilebank",
-  OTHERCARD: "othercard",
-  VISACARD : "visacard",
-  MASTERCARD: "mastercard",
-  AMEXCARD : "amexcard",
 }
 
 export type WidgetPayment = {
@@ -55,4 +49,61 @@ export type WidgetPayment = {
 
 export type ListStripeIntentRes = {
   payments: WidgetPayment[]
+}
+
+
+export interface ISslCommerceRespose{
+  session_data: SessionData;
+  update_requests: UpdateRequests;
+}
+
+
+type Gateway = {
+  visa: string;
+  master: string;
+  amex: string;
+  othercards: string;
+  internetbanking: string;
+  mobilebanking: string;
+};
+
+type SessionData = {
+  status: string;
+  failedreason: string;
+  sessionkey: string;
+  gw: Gateway;
+  redirectGatewayURL: string;
+  directPaymentURLBank: string;
+  directPaymentURLCard: string;
+  directPaymentURL: string;
+  redirectGatewayURLFailed: string;
+  GatewayPageURL: string;
+  storeBanner: string;
+  storeLogo: string;
+  store_name: string;
+  desc: {
+    name: string;
+    type: string;
+    logo: string;
+    gw: string;
+    r_flag: string;
+    redirectGatewayURL: string;
+  }[];
+  is_direct_pay_enable: string;
+};
+
+type UpdateRequests = {
+  customer_metadata: {};
+};
+
+
+
+//  VALID / FAILED / CANCELLED
+
+
+export enum SslCommerzStatus{ 
+  VALID = "VALID",
+  VALIDATED = "VALIDATED",
+  FAILED = "FAILED", 
+  CANCELLED = "CANCELLED"
 }
